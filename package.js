@@ -1,7 +1,7 @@
 /* global Package */
 
 Package.describe({
-  name: 'matb33:collection-hooks',
+  name: 'networksforchange:collection-hooks',
   summary: 'Extends Mongo.Collection with before/after hooks for insert/update/remove/find/findOne',
   version: '1.0.1',
   git: 'https://github.com/Meteor-Community-Packages/meteor-collection-hooks'
@@ -32,7 +32,7 @@ Package.onTest(function (api) {
   api.versionsFrom('1.7.0.5')
 
   api.use([
-    'matb33:collection-hooks',
+    'networksforchange:collection-hooks',
     'accounts-base',
     'accounts-password',
     'mongo',
