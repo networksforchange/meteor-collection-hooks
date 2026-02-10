@@ -2,13 +2,13 @@
 
 Package.describe({
   name: 'networksforchange:collection-hooks',
-  summary: 'Extends Mongo.Collection with before/after hooks for insert/update/remove/find/findOne',
-  version: '1.3.2-beta.1',
+  summary: 'Extends Mongo.Collection with before/after hooks for insert/update/upsert/remove/find/findOne',
+  version: '2.0.0-beta.2',
   git: 'https://github.com/Meteor-Community-Packages/meteor-collection-hooks'
 })
 
 Package.onUse(function (api) {
-  api.versionsFrom(['2.3', '2.8.1', '3.0-rc.10'])
+  api.versionsFrom(['3.0.2', '3.1'])
 
   api.use([
     'mongo',
@@ -29,18 +29,19 @@ Package.onUse(function (api) {
 })
 
 Package.onTest(function (api) {
-  // var isTravisCI = process && process.env && process.env.TRAVIS
-
-  api.versionsFrom(['1.12', '2.3', '3.0-rc.10'])
+  api.versionsFrom(['3.0.2'])
 
   api.use([
     'networksforchange:collection-hooks',
     'accounts-base',
     'accounts-password',
     'mongo',
+    'ddp',
     'tinytest',
     'test-helpers',
-    'ecmascript'
+    'ecmascript',
+    'jquery',
+    'dburles:mongo-collection-instances'
   ])
 
   api.mainModule('tests/client/main.js', 'client')
