@@ -53,7 +53,8 @@ CollectionHooks.defineAdvice('update', function (userId, _super, instance, aspec
       // before
       aspects.before.forEach(function (o) {
         docs.forEach(function (doc) {
-          const r = o.aspect.call({ transform: getTransform(doc), ...ctx }, userId, doc, fields, mutator, options)
+          let r = o.aspect.call({ transform: getTransform(doc), ...ctx }, userId, doc, fields, mutator, options)
+          if (r && typeof r.then === 'function') r = Promise.await(r)
           if (r === false) abort = true
         })
       })
@@ -82,13 +83,14 @@ CollectionHooks.defineAdvice('update', function (userId, _super, instance, aspec
 
       aspects.after.forEach((o) => {
         docs.forEach((doc) => {
-          o.aspect.call({
+          const r = o.aspect.call({
             transform: getTransform(doc),
             previous: prev.docs && prev.docs[doc._id],
             affected,
             err,
             ...ctx
           }, userId, doc, fields, prev.mutator, prev.options)
+          if (r && typeof r.then === 'function') Promise.await(r)
         })
       })
     }
