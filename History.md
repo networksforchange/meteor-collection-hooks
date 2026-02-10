@@ -1,3 +1,46 @@
+## v1.3.2
+* Updated `zodern:types` to v1.0.13 [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Updated Meteor 3 supported version to `3.0-rc.10` for migration support, but will release full 3.0 supported version soon. [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Fix loop in before.find when retuning false [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/313) by [rikvdlooi](https://github.com/rikvdlooi)
+
+## v1.3.1
+* Updated `zodern:types` to v1.0.10 [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Meteor `3.0-beta.0` is now a supported version, but not functionality wise (need to upgrade `count` functions in code) [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+
+## v1.3.0
+* Add direct async methods [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/300) [@alisnic](https://github.com/alisnic)
+* Add support for async collection methods [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/299) [@jdgjsag67251](https://github.com/jdgjsag67251)
+* Added additional Meteor version targets for Meteor `2.8.1` and `3.0-alpha.15` [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Updated tests targets to Meteor `2.8.1` and `2.13.3` [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+
+## v1.2.2
+* Fixed [issue](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/issues/296) where after update did not use direct find [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/297) [@jdgjsag67251](https://github.com/jdgjsag67251)
+
+## v1.2.1
+* Revert change in default behavior of `getDocs` [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/295) [@KoenLav](https://github.com/KoenLav)
+
+## v1.2.0
+* Automated issue comment [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/290) [@jankapunkt](https://github.com/jankapunkt)
+* Add types definition [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/289) [@olragon](https://github.com/olragon)
+* Include `zodern:types` [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Bump minimum required version to v2.3 due to `zodern:types` [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+* Remove testing on Meteor 1.12 and add testing on Meteor 2.9 [@storytellercz](https://github.com/sponsors/StorytellerCZ)
+
+## v1.1.4
+* Fix: Replace and remove functions search indexes before splicing [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/286) [@jankapunkt](https://github.com/jankapunkt)
+* Specify which fields of a document to pull into the before/after update hooks [#256](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/256) [@znewsham](https://github.com/znewsham)
+* Added full CI suite for GitHub [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/285) [@jankapunkt](https://github.com/jankapunkt)
+
+## v1.1.3
+* Resolve conflict in Insert with autoform that resulted in lost callback [#1710](https://github.com/Meteor-Community-Packages/meteor-autoform/issues/1710) [@cpravetz](https://github.com/cpravetz)
+* Added GitHub action to run linter
+
+## v1.1.2
+* Updated dev dependencies
+
+## v1.1.1
+* Added support for MongoDB 5.x => insertOne instead of insert [PR](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/278) [@KoenLav](https://github.com/KoenLav)
+
 ## v1.1.0
 * Add compatibility to Meteor 2.3 while also maintaining backward compatibility.
 * Testing now on Node 12 and 14

@@ -36,20 +36,33 @@ CollectionHooks.extendCollectionInstance = function extendCollectionInstance (se
 
       self._hookAspects[method][pointcut] = []
       self[pointcut][method] = function (aspect, options) {
-        const len = self._hookAspects[method][pointcut].push({
+        let target = {
           aspect,
           options: CollectionHooks.initOptions(options, pointcut, method)
-        })
+        }
+        // adding is simply pushing it to the array
+        self._hookAspects[method][pointcut].push(target)
 
         return {
           replace (aspect, options) {
-            self._hookAspects[method][pointcut].splice(len - 1, 1, {
+            // replacing is done by determining the actual index of a given target
+            // and replace this with the new one
+            const src = self._hookAspects[method][pointcut]
+            const targetIndex = src.findIndex(entry => entry === target)
+            const newTarget = {
               aspect,
               options: CollectionHooks.initOptions(options, pointcut, method)
-            })
+            }
+            src.splice(targetIndex, 1, newTarget)
+            // update the target to get the correct index in future calls
+            target = newTarget
           },
           remove () {
-            self._hookAspects[method][pointcut].splice(len - 1, 1)
+            // removing a hook is done by determining the actual index of a given target
+            // and removing it form the source array
+            const src = self._hookAspects[method][pointcut]
+            const targetIndex = src.findIndex(entry => entry === target)
+            self._hookAspects[method][pointcut].splice(targetIndex, 1)
           }
         }
       }
@@ -75,6 +88,16 @@ CollectionHooks.extendCollectionInstance = function extendCollectionInstance (se
       })
     }
 
+    const asyncMethod = method + 'Async'
+
+    if (constructor.prototype[asyncMethod]) {
+      self.direct[asyncMethod] = function (...args) {
+        return CollectionHooks.directOp(function () {
+          return constructor.prototype[asyncMethod].apply(self, args)
+        })
+      }
+    }
+
     collection[method] = function (...args) {
       if (CollectionHooks.directEnv.get() === true) {
         return _super.apply(collection, args)
@@ -94,11 +117,13 @@ CollectionHooks.extendCollectionInstance = function extendCollectionInstance (se
         CollectionHooks.getUserId(),
         _super,
         self,
-        method === 'upsert' ? {
-          insert: self._hookAspects.insert || {},
-          update: self._hookAspects.update || {},
-          upsert: self._hookAspects.upsert || {}
-        } : self._hookAspects[method] || {},
+        method === 'upsert'
+          ? {
+              insert: self._hookAspects.insert || {},
+              update: self._hookAspects.update || {},
+              upsert: self._hookAspects.upsert || {}
+            }
+          : self._hookAspects[method] || {},
         function (doc) {
           return (
             typeof self._transform === 'function'
@@ -125,8 +150,12 @@ CollectionHooks.initOptions = (options, pointcut, method) =>
 CollectionHooks.extendOptions = (source, options, pointcut, method) =>
   ({ ...options, ...source.all.all, ...source[pointcut].all, ...source.all[method], ...source[pointcut][method] })
 
-CollectionHooks.getDocs = function getDocs (collection, selector, options) {
+CollectionHooks.getDocs = function getDocs (collection, selector, options, fetchFields = {}, { useDirect = false } = {}) {
   const findOptions = { transform: null, reactive: false, removed: true } // added reactive: false
+
+  if (Object.keys(fetchFields).length > 0) {
+    findOptions.fields = fetchFields
+  }
 
   /*
   // No "fetch" support at this time.
@@ -154,7 +183,7 @@ CollectionHooks.getDocs = function getDocs (collection, selector, options) {
 
   // Unlike validators, we iterate over multiple docs, so use
   // find instead of findOne:
-  return collection.find(selector, findOptions)
+  return (useDirect ? collection.direct : collection).find(selector, findOptions)
 }
 
 // This function normalizes the selector (converting it to an Object)

@@ -1,4 +1,9 @@
-# Meteor Collection Hooks [![Build Status](https://travis-ci.org/Meteor-Community-Packages/meteor-collection-hooks.png?branch=master)](https://travis-ci.org/matb33/meteor-collection-hooks)
+# Meteor Collection Hooks
+
+![Test suite](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/workflows/Test%20suite/badge.svg)
+![Code lint](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/workflows/Code%20lint/badge.svg)
+![CodeQL Analysis](https://github.com/Meteor-Community-Packages/meteor-collection-hooks/workflows/CodeQL/badge.svg)
+
 
 Extends Mongo.Collection with `before`/`after` hooks for `insert`, `update`, `remove`, `find`, and `findOne`.
 
@@ -54,9 +59,13 @@ test.before.update(function (userId, doc, fieldNames, modifier, options) {
 });
 ```
 
-__Important__: Note that we are changing `modifier`, and not `doc`.
+__Important__: 
+
+1. Note that we are changing `modifier`, and not `doc`.
 Changing `doc` won't have any effect as the document is a copy and is not what
 ultimately gets sent down to the underlying `update` method.
+
+2. When triggering a single update targeting multiple documents using the option `multi: true` (see [Meteor documentation](https://docs.meteor.com/api/collections.html#Mongo-Collection-update)), the `before.update` hook is called once per document about to be updated, **but** the collection update called afterwards remains a single update (targetting multiple documents) with a single modifier. Hence it is not possible at the time to use `before.update` to create a specific modifier for each targeted document.
 
 --------------------------------------------------------------------------------
 
@@ -149,6 +158,8 @@ effectively disable the pre-fetching of documents.
 It is instead recommended to use the collection-wide options (e.g.
 `MyCollection.hookOptions.after.update = {fetchPrevious: false};`).
 
+This hook will always be called with the new documents; even if the updated document gets modified in a way were it would normally not be able to be found because of `before.find` hooks (see https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/297).
+
 --------------------------------------------------------------------------------
 
 ### .after.remove(userId, doc)
@@ -157,7 +168,7 @@ Fired after the doc was removed.
 
 `doc` contains a copy of the document before it was removed.
 
-Allows you to to run post-removal tasks that don't necessarily depend
+Allows you to run post-removal tasks that don't necessarily depend
 on the document being found in the database (external service clean-up for
 instance).
 
@@ -176,7 +187,7 @@ test.after.remove(function (userId, doc) {
 
 Fired before a find query.
 
-Allows you to to adjust selector/options on-the-fly.
+Allows you to adjust selector/options on-the-fly.
 
 ```javascript
 test.before.find(function (userId, selector, options) {
@@ -184,13 +195,15 @@ test.before.find(function (userId, selector, options) {
 });
 ```
 
+__Important:__ This hook does not get called for `after.update` hooks (see https://github.com/Meteor-Community-Packages/meteor-collection-hooks/pull/297).
+
 --------------------------------------------------------------------------------
 
 ### .after.find(userId, selector, options, cursor)
 
 Fired after a find query.
 
-Allows you to to act on a given find query. The cursor resulting from
+Allows you to act on a given find query. The cursor resulting from
 the query is provided as the last argument for convenience.
 
 ```javascript
@@ -205,7 +218,7 @@ test.after.find(function (userId, selector, options, cursor) {
 
 Fired before a findOne query.
 
-Allows you to to adjust selector/options on-the-fly.
+Allows you to adjust selector/options on-the-fly.
 
 ```javascript
 test.before.findOne(function (userId, selector, options) {
@@ -219,7 +232,7 @@ test.before.findOne(function (userId, selector, options) {
 
 Fired after a findOne query.
 
-Allows you to to act on a given findOne query. The document resulting
+Allows you to act on a given findOne query. The document resulting
 from the query is provided as the last argument for convenience.
 
 ```javascript
@@ -236,10 +249,16 @@ All compatible methods have a `direct` version that circumvent any defined hooks
 
 ```javascript
 collection.direct.insert({_id: "test", test: 1});
+collection.direct.insertAsync({_id: "test", test: 1});
+collection.direct.upsert({_id: "test", test: 1});
+collection.direct.upsertAsync({_id: "test", test: 1});
 collection.direct.update({_id: "test"}, {$set: {test: 1}});
+collection.direct.updateAsync({_id: "test"}, {$set: {test: 1}});
 collection.direct.find({test: 1});
 collection.direct.findOne({test: 1});
+collection.direct.findOneAsync({test: 1});
 collection.direct.remove({_id: "test"});
+collection.direct.removeAsync({_id: "test"});
 ```
 
 --------------------------------------------------------------------------------
@@ -363,3 +382,5 @@ Maintained by [Meteor Community Packages](https://github.com/Meteor-Community-Pa
 - Tom Coleman ([tmeasday](https://github.com/tmeasday))
 - Eric Jackson ([repjackson](https://github.com/repjackson))
 - Koen Lav ([KoenLav](https://github.com/KoenLav))
+- Chris Pravetz ([cpravetz](https://github.com/cpravetz))
+- Jan Kuster ([jankapunkt](https://github.com/jankapunkt))
