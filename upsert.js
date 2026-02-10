@@ -41,7 +41,8 @@ CollectionHooks.defineAdvice('upsert', function (userId, _super, instance, aspec
 
     // before
     aspectGroup.upsert.before.forEach((o) => {
-      const r = o.aspect.call(ctx, userId, selector, mutator, options)
+      let r = o.aspect.call(ctx, userId, selector, mutator, options)
+      if (r && typeof r.then === 'function') r = Promise.await(r)
       if (r === false) abort = true
     })
 
@@ -55,13 +56,14 @@ CollectionHooks.defineAdvice('upsert', function (userId, _super, instance, aspec
 
       aspectGroup.update.after.forEach((o) => {
         docs.forEach((doc) => {
-          o.aspect.call({
+          const r = o.aspect.call({
             transform: getTransform(doc),
             previous: prev.docs && prev.docs[doc._id],
             affected,
             err,
             ...ctx
           }, userId, doc, fields, prev.mutator, prev.options)
+          if (r && typeof r.then === 'function') Promise.await(r)
         })
       })
     }
@@ -73,7 +75,8 @@ CollectionHooks.defineAdvice('upsert', function (userId, _super, instance, aspec
       const lctx = { transform: getTransform(doc), _id, err, ...ctx }
 
       aspectGroup.insert.after.forEach((o) => {
-        o.aspect.call(lctx, userId, doc)
+        const r = o.aspect.call(lctx, userId, doc)
+        if (r && typeof r.then === 'function') Promise.await(r)
       })
     }
   }

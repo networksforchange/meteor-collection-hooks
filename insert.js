@@ -18,7 +18,8 @@ CollectionHooks.defineAdvice('insert', function (userId, _super, instance, aspec
   if (!suppressAspects) {
     try {
       aspects.before.forEach((o) => {
-        const r = o.aspect.call({ transform: getTransform(doc), ...ctx }, userId, doc)
+        let r = o.aspect.call({ transform: getTransform(doc), ...ctx }, userId, doc)
+        if (r && typeof r.then === 'function') r = Promise.await(r)
         if (r === false) abort = true
       })
 
@@ -47,7 +48,8 @@ CollectionHooks.defineAdvice('insert', function (userId, _super, instance, aspec
     if (!suppressAspects) {
       const lctx = { transform: getTransform(doc), _id: id, err, ...ctx }
       aspects.after.forEach((o) => {
-        o.aspect.call(lctx, userId, doc)
+        const r = o.aspect.call(lctx, userId, doc)
+        if (r && typeof r.then === 'function') Promise.await(r)
       })
     }
     return id
