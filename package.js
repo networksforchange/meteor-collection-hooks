@@ -3,7 +3,7 @@
 Package.describe({
   name: 'networksforchange:collection-hooks',
   summary: 'Extends Mongo.Collection with before/after hooks for insert/update/remove/find/findOne',
-  version: '1.3.2-beta.2',
+  version: '1.3.2-beta.3',
   git: 'https://github.com/Meteor-Community-Packages/meteor-collection-hooks'
 })
 
