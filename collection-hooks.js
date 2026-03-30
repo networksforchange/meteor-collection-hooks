@@ -225,6 +225,7 @@ CollectionHooks.getFields = function getFields (mutator) {
   Object.entries(mutator).forEach(function ([op, params]) {
     // ====ADDED START=======================
     if (operators.includes(op)) {
+      if (params == null) return
     // ====ADDED END=========================
       Object.keys(params).forEach(function (field) {
         // treat dotted fields as if they are replacing their
