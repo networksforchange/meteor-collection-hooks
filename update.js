@@ -35,8 +35,12 @@ CollectionHooks.defineAdvice('update', function (userId, _super, instance, aspec
         const beforeGlobal = shouldFetchForPrevious ? (CollectionHooks.extendOptions(instance.hookOptions, {}, 'before', 'update').fetchFields || {}) : {}
         Object.assign(fetchFields, afterGlobal, beforeGlobal, ...afterAspectFetchFields, ...beforeAspectFetchFields)
       }
-      docs = CollectionHooks.getDocs.call(this, instance, args[0], args[2], fetchFields).fetch()
-      docIds = Object.values(docs).map(doc => doc._id)
+
+      // Skip when no update hooks: avoids an extra find per update; before/after need docs/docIds.
+      if (shouldFetchForBefore || shouldFetchForAfter) {
+        docs = CollectionHooks.getDocs.call(this, instance, args[0], args[2], fetchFields).fetch()
+        docIds = Object.values(docs).map(doc => doc._id)
+      }
 
       // copy originals for convenience for the 'after' pointcut
       if (shouldFetchForAfter) {
