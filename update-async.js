@@ -69,7 +69,7 @@ CollectionHooks.defineAsyncAdvice('update', async function (userId, _super, inst
     if (abort) return 0
   }
 
-  const affected = await _super.call(this, selector, mutator, options)
+  const affected = await CollectionHooks.directOp(() => _super.call(this, selector, mutator, options))
 
   if (!suppressAspects && !isEmpty(aspects.after)) {
     const afterFields = CollectionHooks.getFields(args[1])

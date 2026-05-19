@@ -29,7 +29,7 @@ CollectionHooks.defineAsyncAdvice('remove', async function (userId, _super, inst
     if (abort) return 0
   }
 
-  const result = await _super.call(this, selector)
+  const result = await CollectionHooks.directOp(() => _super.call(this, selector))
 
   // after
   if (!suppressAspects) {

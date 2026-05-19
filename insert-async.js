@@ -17,7 +17,7 @@ CollectionHooks.defineAsyncAdvice('insert', async function (userId, _super, inst
     if (abort) return
   }
 
-  let id = await _super.call(this, doc)
+  let id = await CollectionHooks.directOp(() => _super.call(this, doc))
 
   // Normalise the returned id — mirrors the same logic in insert.js
   if (typeof id === 'object' && id.ops) {
