@@ -8,6 +8,7 @@ import { LocalCollection } from 'meteor/minimongo'
 // Advice: Wrapper code that knows when to call user code (aspects)
 // Pointcut: before/after
 const advices = {}
+const asyncAdvices = {}
 
 export const CollectionHooks = {
   defaults: {
@@ -98,6 +99,40 @@ CollectionHooks.extendCollectionInstance = function extendCollectionInstance (se
       }
     }
 
+    // Wrap the async twin with async advice when one is registered.
+    // Unlike the sync path (which wraps self._collection on the server), async
+    // methods bypass LocalCollection and go straight to the MongoDB driver, so
+    // we always wrap on `self` (the outer Mongo.Collection) for async.
+    const asyncAdvice = CollectionHooks.getAsyncAdvice(method)
+    const _superAsync = constructor.prototype[asyncMethod]
+      ? self[asyncMethod]
+      : null
+
+    if (asyncAdvice && _superAsync) {
+      self[asyncMethod] = async function (...args) {
+        if (CollectionHooks.directEnv.get() === true) {
+          return _superAsync.apply(self, args)
+        }
+
+        return asyncAdvice.call(
+          this,
+          CollectionHooks.getUserId(),
+          _superAsync.bind(self),
+          self,
+          self._hookAspects[method] || {},
+          function (doc) {
+            return (
+              typeof self._transform === 'function'
+                ? function (d) { return self._transform(d || doc) }
+                : function (d) { return d || doc }
+            )
+          },
+          args,
+          false
+        )
+      }
+    }
+
     collection[method] = function (...args) {
       if (CollectionHooks.directEnv.get() === true) {
         return _super.apply(collection, args)
@@ -144,6 +179,12 @@ CollectionHooks.defineAdvice = (method, advice) => {
 
 CollectionHooks.getAdvice = method => advices[method]
 
+CollectionHooks.defineAsyncAdvice = (method, advice) => {
+  asyncAdvices[method] = advice
+}
+
+CollectionHooks.getAsyncAdvice = method => asyncAdvices[method]
+
 CollectionHooks.initOptions = (options, pointcut, method) =>
   CollectionHooks.extendOptions(CollectionHooks.defaults, options, pointcut, method)
 
@@ -184,6 +225,24 @@ CollectionHooks.getDocs = function getDocs (collection, selector, options, fetch
   // Unlike validators, we iterate over multiple docs, so use
   // find instead of findOne:
   return (useDirect ? collection.direct : collection).find(selector, findOptions)
+}
+
+CollectionHooks.getDocsAsync = async function getDocsAsync (collection, selector, options, fetchFields = {}, { useDirect = false } = {}) {
+  const findOptions = { transform: null, reactive: false, removed: true }
+
+  if (Object.keys(fetchFields).length > 0) {
+    findOptions.fields = fetchFields
+  }
+
+  if (options) {
+    if (!options.multi) {
+      findOptions.limit = 1
+    }
+    const { multi, upsert, ...rest } = options
+    Object.assign(findOptions, rest)
+  }
+
+  return (useDirect ? collection.direct : collection).find(selector, findOptions).fetchAsync()
 }
 
 // This function normalizes the selector (converting it to an Object)
